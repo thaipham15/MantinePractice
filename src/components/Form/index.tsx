@@ -1,16 +1,13 @@
 import {isNotEmpty, useForm} from '@mantine/form';
-import {NumberInput, TextInput, Button, Box, Grid, Select, Checkbox} from '@mantine/core';
+import {NumberInput, TextInput, Button, Select, Checkbox, Paper, Group} from '@mantine/core';
 import {DatePickerInput} from "@mantine/dates";
-import {useState} from "react";
 import "./styles.css"
-import {useQuery} from "react-query";
-import {getCities} from "../../test/fakeApiCall.ts";
+import {useMutation, useQuery} from "react-query";
+import {getCities, postForm} from "../../test/fakeApiCall.ts";
 
 
 const DemoForm = (): JSX.Element => {
     const cities = useQuery('cities', getCities)
-    const [fromDate, setFromDate] = useState<Date >();
-    const [toDate, setToDate] = useState<Date | null>(null);
 
     const form = useForm({
         initialValues: {
@@ -30,61 +27,59 @@ const DemoForm = (): JSX.Element => {
             passengers: (value) => value > 0 || 'Number of passengers must be greater than 0',
         },
     });
+    const onSubmit = useMutation(postForm, {
+        onSuccess: (res) => {
+            // Invalidate and refetch
+            console.log(res)
+        },
+    })
 
     return (
-        <Box className="form-wrapper" maw={420} mx="auto">
+        <Paper className="form-wrapper" maw={420}>
             <h2>Book a flight</h2>
-            <form onSubmit={form.onSubmit(console.log)}>
-                <Grid>
-                    <Grid.Col span={6}>
-                        <Select
-                            label="From"
-                            placeholder="Pick one"
-                            required={true}
-                            data={cities?.data?.map((city) => ({value: city?.value, label: city?.label})) || []}
-                            {...form.getInputProps('from')}
-                        />
-                    </Grid.Col>
-                    <Grid.Col span={6}>
-                        <DatePickerInput
-                            label="Departure date"
-                            placeholder="Pick date"
-                            value={fromDate}
-                            onChange={setFromDate}
-                            mx="auto"
-                            maw={400}
-                            {...form.getInputProps('fromDate')}
-                        />
-                    </Grid.Col>
-                </Grid>
+            <form onSubmit={form.onSubmit(onSubmit.mutate)}>
+                <Group grow>
+                    <Select
+                        label="From"
+                        placeholder="Pick one"
+                        required={true}
+                        data={cities?.data?.map((city) => ({value: city?.value, label: city?.label})) || []}
+                        {...form.getInputProps('from')}
+                    />
+                    <DatePickerInput
+                        label="Departure date"
+                        placeholder="Pick date"
+                        value={form.values.fromDate}
+                        onChange={form.setFieldValue('fromDate')}
+                        mx="auto"
+                        maw={400}
+                        {...form.getInputProps('fromDate')}
+                    />
+                </Group>
 
-                <Grid>
-                    <Grid.Col span={6}>
-                        <Select
-                            label="To"
-                            required={true}
-                            placeholder="Pick one"
-                            data={[
-                                { value: 'Hanoi', label: 'Hanoi' },
-                                { value: 'Ho Chi Minh City', label: 'Ho Chi Minh City' },
-                                { value: 'Tokyo', label: 'Tokyo' },
-                            ]}
-                            {...form.getInputProps('to')}
-                        />
-                    </Grid.Col>
-                    <Grid.Col span={6}>
-                        <DatePickerInput
-                            label="Return Date"
-                            placeholder="Pick date"
-                            value={toDate}
-                            minDate={fromDate}
-                            onChange={setToDate}
-                            mx="auto"
-                            maw={400}
-                            {...form.getInputProps('toDate')}
-                        />
-                    </Grid.Col>
-                </Grid>
+                <Group grow>
+                    <Select
+                        label="To"
+                        required={true}
+                        placeholder="Pick one"
+                        data={[
+                            {value: 'Hanoi', label: 'Hanoi'},
+                            {value: 'Ho Chi Minh City', label: 'Ho Chi Minh City'},
+                            {value: 'Tokyo', label: 'Tokyo'},
+                        ]}
+                        {...form.getInputProps('to')}
+                    />
+                    <DatePickerInput
+                        label="Return Date"
+                        placeholder="Pick date"
+                        value={form.values.toDate}
+                        minDate={form.values.fromDate}
+                        onChange={form.setFieldValue('toDate')}
+                        mx="auto"
+                        maw={400}
+                        {...form.getInputProps('toDate')}
+                    />
+                </Group>
 
                 <NumberInput
                     mt={"sm"}
@@ -95,7 +90,8 @@ const DemoForm = (): JSX.Element => {
                 />
 
 
-                <TextInput mt={"sm"}  label="Promotion Code" placeholder="Promotion Code" {...form.getInputProps('name')} {...form.getInputProps('promotionCode')}/>
+                <TextInput mt={"sm"} label="Promotion Code"
+                           placeholder="Promotion Code" {...form.getInputProps('name')} {...form.getInputProps('promotionCode')}/>
 
                 <Checkbox
                     mt={"xl"}
@@ -107,7 +103,7 @@ const DemoForm = (): JSX.Element => {
                     Let's go
                 </Button>
             </form>
-        </Box>
+        </Paper>
     );
 }
 
