@@ -1,5 +1,5 @@
 import {isNotEmpty, useForm} from '@mantine/form';
-import {NumberInput, TextInput, Button, Select, Checkbox, Paper, Group} from '@mantine/core';
+import {NumberInput, TextInput, Button, Select, Checkbox, Paper, Group, Title, Stack} from '@mantine/core';
 import {DatePickerInput} from "@mantine/dates";
 import "./styles.css"
 import {useMutation, useQuery} from "react-query";
@@ -31,85 +31,97 @@ const DemoForm = (): JSX.Element => {
             }
         },
     });
-    const onSubmit = useMutation({
-        mutationFn: postForm,
-        onSuccess: (data) => {
-            console.log(data)
-        }
-    })
+
+    const handlePostForm = () => {
+        return useMutation({
+            mutationKey: 'postForm',
+            mutationFn: postForm,
+            onSuccess: (data) => {
+                console.log(data)
+            }
+        })
+    }
+
+    const { mutate } = handlePostForm()
+
+    // const onSubmit = useMutation({
+    //     mutationFn: postForm,
+    //     onSuccess: (data) => {
+    //         console.log(data)
+    //     }
+    // })
 
     return (
-        <Paper className="form-wrapper" maw={420}>
-            <h2>Book a flight</h2>
-            <form onSubmit={form.onSubmit(onSubmit.mutate)}>
-                <Group grow>
-                    <Select
-                        label="From"
-                        placeholder="Pick one"
+        <Paper withBorder radius={'xl'} p={'xl'} shadow={'xs'} maw={420}>
+            <form onSubmit={form.onSubmit(mutate)}>
+                <Stack>
+                    <Title order={2}>Book a flight</Title>
+                    <Group grow>
+                        <Select
+                            label="From"
+                            placeholder="Pick one"
+                            required={true}
+                            data={cities?.data?.map((city) => ({value: city?.value, label: city?.label})) || []}
+                            {...form.getInputProps('from')}
+                        />
+                        <DatePickerInput
+                            {...form.getInputProps('fromDate')}
+                            label="Departure date"
+                            placeholder="Pick date"
+                            value={form.values.fromDate}
+                            onChange={(value) => {
+                                form.setFieldValue('fromDate', value)
+                            }}
+                            mx="auto"
+                            maw={400}
+                        />
+                    </Group>
+
+                    <Group grow>
+                        <Select
+                            label="To"
+                            required={true}
+                            placeholder="Pick one"
+                            data={[
+                                {value: 'Hanoi', label: 'Hanoi'},
+                                {value: 'Ho Chi Minh City', label: 'Ho Chi Minh City'},
+                                {value: 'Tokyo', label: 'Tokyo'},
+                            ]}
+                            {...form.getInputProps('to')}
+                        />
+                        <DatePickerInput
+                            label="Return Date"
+                            placeholder="Pick date"
+                            {...form.getInputProps('toDate')}
+                            value={form.values.toDate}
+                            minDate={form.values.fromDate || new Date()}
+                            onChange={(value) => {
+                                form.setFieldValue('toDate', value)
+                            }}
+                            mx="auto"
+                            maw={400}
+                        />
+                    </Group>
+
+                    <NumberInput
+                        label="Number of passengers"
+                        placeholder="Number of passengers"
                         required={true}
-                        data={cities?.data?.map((city) => ({value: city?.value, label: city?.label})) || []}
-                        {...form.getInputProps('from')}
+                        {...form.getInputProps('passengers')}
                     />
-                    <DatePickerInput
-                        {...form.getInputProps('fromDate')}
-                        label="Departure date"
-                        placeholder="Pick date"
-                        value={form.values.fromDate}
-                        onChange={(value) => {
-                            form.setFieldValue('fromDate', value)
-                        }}
-                        mx="auto"
-                        maw={400}
+
+
+                    <TextInput label="Promotion Code"
+                               placeholder="Promotion Code" {...form.getInputProps('name')} {...form.getInputProps('promotionCode')}/>
+                    <Checkbox
+                        label="Find lowest fare"
                     />
-                </Group>
 
-                <Group grow>
-                    <Select
-                        label="To"
-                        required={true}
-                        placeholder="Pick one"
-                        data={[
-                            {value: 'Hanoi', label: 'Hanoi'},
-                            {value: 'Ho Chi Minh City', label: 'Ho Chi Minh City'},
-                            {value: 'Tokyo', label: 'Tokyo'},
-                        ]}
-                        {...form.getInputProps('to')}
-                    />
-                    <DatePickerInput
-                        label="Return Date"
-                        placeholder="Pick date"
-                        {...form.getInputProps('toDate')}
-                        value={form.values.toDate}
-                        minDate={form.values.fromDate || new Date()}
-                        onChange={(value) => {
-                            form.setFieldValue('toDate', value)
-                        }}
-                        mx="auto"
-                        maw={400}
-                    />
-                </Group>
+                    <Button sx={{width: "100%"}} type="submit">
+                        Let's go
+                    </Button>
 
-                <NumberInput
-                    mt={"sm"}
-                    label="Number of passengers"
-                    placeholder="Number of passengers"
-                    required={true}
-                    {...form.getInputProps('passengers')}
-                />
-
-
-                <TextInput mt={"sm"} label="Promotion Code"
-                           placeholder="Promotion Code" {...form.getInputProps('name')} {...form.getInputProps('promotionCode')}/>
-
-                <Checkbox
-                    mt={"xl"}
-                    label="Find lowest fare"
-                />
-
-
-                <Button sx={{width: "100%"}} type="submit" mt="sm">
-                    Let's go
-                </Button>
+                </Stack>
             </form>
         </Paper>
     );
