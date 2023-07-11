@@ -3,35 +3,39 @@ import {NumberInput, TextInput, Button, Select, Checkbox, Paper, Group} from '@m
 import {DatePickerInput} from "@mantine/dates";
 import "./styles.css"
 import {useMutation, useQuery} from "react-query";
-import {getCities, postForm} from "../../test/fakeApiCall.ts";
+import {getCities, IFormData, postForm} from "../../test/fakeApiCall.ts";
 
 
 const DemoForm = (): JSX.Element => {
     const cities = useQuery('cities', getCities)
 
-    const form = useForm({
+    const form = useForm<IFormData>({
         initialValues: {
-            from: null,
-            fromDate: null,
-            to: null,
-            toDate: null,
+            from: '',
+            fromDate: new Date(),
+            to: '',
+            toDate: new Date(),
             passengers: 0,
             promotionCode: '',
             findLowestFare: false,
         },
         validate: {
             from: isNotEmpty('Please select a departure city'),
-            fromDate: (value) => value || 'Please select a departure date time',
+            // fromDate: (value) => value || 'Please select a departure date time',
             to: isNotEmpty('Please select a destination city'),
-            toDate: (value) => value || 'Please select a departure date time',
-            passengers: (value) => value > 0 || 'Number of passengers must be greater than 0',
+            // toDate: (value) => value || 'Please select a departure date time',
+            passengers: (value) => {
+                if (value < 1) {
+                    return 'The passengers number must be greater than 0'
+                }
+            }
         },
     });
-    const onSubmit = useMutation(postForm, {
-        onSuccess: (res) => {
-            // Invalidate and refetch
-            console.log(res)
-        },
+    const onSubmit = useMutation({
+        mutationFn: postForm,
+        onSuccess: (data) => {
+            console.log(data)
+        }
     })
 
     return (
@@ -47,13 +51,15 @@ const DemoForm = (): JSX.Element => {
                         {...form.getInputProps('from')}
                     />
                     <DatePickerInput
+                        {...form.getInputProps('fromDate')}
                         label="Departure date"
                         placeholder="Pick date"
                         value={form.values.fromDate}
-                        onChange={form.setFieldValue('fromDate')}
+                        onChange={(value) => {
+                            form.setFieldValue('fromDate', value)
+                        }}
                         mx="auto"
                         maw={400}
-                        {...form.getInputProps('fromDate')}
                     />
                 </Group>
 
@@ -72,12 +78,14 @@ const DemoForm = (): JSX.Element => {
                     <DatePickerInput
                         label="Return Date"
                         placeholder="Pick date"
+                        {...form.getInputProps('toDate')}
                         value={form.values.toDate}
-                        minDate={form.values.fromDate}
-                        onChange={form.setFieldValue('toDate')}
+                        minDate={form.values.fromDate || new Date()}
+                        onChange={(value) => {
+                            form.setFieldValue('toDate', value)
+                        }}
                         mx="auto"
                         maw={400}
-                        {...form.getInputProps('toDate')}
                     />
                 </Group>
 

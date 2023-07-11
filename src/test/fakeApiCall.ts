@@ -1,3 +1,5 @@
+import {DateValue} from "@mantine/dates";
+
 export const getCities = async () => {
     return Promise.resolve([
         { value: 'Hanoi', label: 'Hanoi' },
@@ -6,15 +8,15 @@ export const getCities = async () => {
     ]);
 }
 
-// interface IFormData {
-//     from: string;
-//     fromDate: Date;
-//     to: string,
-//     toDate: Date,
-//     passengers: Number,
-//     promotionCode: string,
-//     findLowestFare: boolean,
-// }
+export interface IFormData {
+    from: string;
+    fromDate: DateValue;
+    to: string,
+    toDate: DateValue,
+    passengers: number,
+    promotionCode: string,
+    findLowestFare: boolean,
+}
 
 export const postForm = async (data: any) => {
     return Promise.resolve({
